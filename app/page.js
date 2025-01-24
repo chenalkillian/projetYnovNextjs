@@ -5,6 +5,7 @@ import Menu from "./Menu";
 import { motion } from 'framer-motion';
 import EventModal from './components/EventModal';
 import { toast } from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -89,10 +90,12 @@ export default function Events() {
               className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-2 text-indigo-700">{event.title}</h2>
-                <p className="text-gray-600 mb-1">Date : {new Date(event.date).toLocaleDateString()}</p>
-                <p className="text-gray-600 mb-2">Heure : {new Date(event.date).toLocaleTimeString()}</p>
-                <p className="text-gray-600 mb-4">Lieu : {event.location}</p>
+                <Link href={`/event/${event.id}`} className="block hover:opacity-80 transition-opacity">
+                  <h2 className="text-xl font-semibold mb-2 text-indigo-700">{event.title}</h2>
+                  <p className="text-gray-600 mb-1">Date : {new Date(event.date).toLocaleDateString()}</p>
+                  <p className="text-gray-600 mb-2">Heure : {new Date(event.date).toLocaleTimeString()}</p>
+                  <p className="text-gray-600 mb-4">Lieu : {event.location}</p>
+                </Link>
                 {event.description && (
                   <p className="text-gray-600 mb-4">{event.description}</p>
                 )}
