@@ -1,10 +1,24 @@
-let events = [
-    { id: 1, title: "Événement 1", date: "2022-01-01", location: "Paris" },
-    { id: 2, title: "Événement 2", date: "2022-01-02", location: "Lyon" },
-    { id: 3, title: "Événement 3", date: "2022-01-03", location: "Marseille" },
-];
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+
+// Initialisez Firebase avec votre configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCe3iXCefDgAlSaQH_DvUro3mzmqAVBwrk",
+    authDomain: "projetnextjs-67c48.firebaseapp.com",
+    projectId: "projetnextjs-67c48",
+    storageBucket: "projetnextjs-67c48.firebasestorage.app",
+    messagingSenderId: "605413315565",
+    appId: "1:605413315565:web:60a7b0265a704f30d70de4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export async function GET() {
+    const eventsCollection = collection(db, 'events');
+    const eventSnapshot = await getDocs(eventsCollection);
+    const events = eventSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
     return new Response(JSON.stringify(events), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -22,10 +36,10 @@ export async function POST(req) {
         );
     }
 
-    const newEvent = { id: events.length + 1, title, date, location };
-    events.push(newEvent);
+    const eventsCollection = collection(db, 'events');
+    const newEvent = await addDoc(eventsCollection, { title, date, location });
 
-    return new Response(JSON.stringify(newEvent), {
+    return new Response(JSON.stringify({ id: newEvent.id, title, date, location }), {
         status: 201,
         headers: { "Content-Type": "application/json" },
     });
@@ -42,16 +56,10 @@ export async function PUT(req) {
         );
     }
 
-    const index = events.findIndex((event) => event.id === id);
-    if (index === -1) {
-        return new Response(
-            JSON.stringify({ error: "Événement introuvable" }),
-            { status: 404, headers: { "Content-Type": "application/json" } }
-        );
-    }
+    const eventRef = doc(db, 'events', id);
+    await updateDoc(eventRef, { title, date, location });
 
-    events[index] = { id, title, date, location };
-    return new Response(JSON.stringify(events[index]), {
+    return new Response(JSON.stringify({ id, title, date, location }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
@@ -59,7 +67,7 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
     const { searchParams } = new URL(req.url);
-    const id = parseInt(searchParams.get("id"));
+    const id = searchParams.get("id");
 
     if (!id) {
         return new Response(
@@ -68,6 +76,8 @@ export async function DELETE(req) {
         );
     }
 
-    events = events.filter((event) => event.id !== id);
+    const eventRef = doc(db, 'events', id);
+    await deleteDoc(eventRef);
+
     return new Response(null, { status: 204 });
 }

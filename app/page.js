@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Menu from "./Menu"; // Assurez-vous que le chemin est correct
+import { motion } from 'framer-motion';
 
 export default function Events() {
   const [events, setEvents] = useState([]);
@@ -77,61 +79,86 @@ export default function Events() {
   };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Événements</h1>
-
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">
-          {editingEvent ? "Modifier l'événement" : "Ajouter un événement"}
-        </h2>
-        <input
-          type="text"
-          placeholder="Titre"
-          value={newEvent.title}
-          onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-          className="p-2 border border-gray-300 rounded mb-2 w-full"
-        />
-        <input
-          type="date"
-          value={newEvent.date}
-          onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-          className="p-2 border border-gray-300 rounded mb-2 w-full"
-        />
-        <input
-          type="text"
-          placeholder="Lieu"
-          value={newEvent.location}
-          onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-          className="p-2 border border-gray-300 rounded mb-2 w-full"
-        />
-        <button
-          onClick={handleAddOrUpdateEvent}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-200">
+      <Menu />
+      <div className="container mx-auto p-8 pt-24">
+        <motion.h1
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl font-bold mb-8 text-center text-indigo-800"
         >
-          {editingEvent ? "Modifier" : "Ajouter"}
-        </button>
-      </div>
+          Gestion des Événements
+        </motion.h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => (
-          <div key={event.id} className="p-6 border border-gray-300 rounded-lg shadow-md bg-white">
-            <h2 className="text-xl font-semibold mb-2">{event.title}</h2>
-            <p className="text-gray-700 mb-1">Date : {event.date}</p>
-            <p className="text-gray-700">Lieu : {event.location}</p>
-            <button
-              onClick={() => handleEditEvent(event)}
-              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 mr-2"
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white rounded-lg shadow-lg p-6 mb-8"
+        >
+          <h2 className="text-2xl font-semibold mb-4 text-indigo-700">
+            {editingEvent ? "Modifier l'événement" : "Ajouter un événement"}
+          </h2>
+          <input
+            type="text"
+            placeholder="Titre"
+            value={newEvent.title}
+            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <input
+            type="date"
+            value={newEvent.date}
+            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <input
+            type="text"
+            placeholder="Lieu"
+            value={newEvent.location}
+            onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          <button
+            onClick={handleAddOrUpdateEvent}
+            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105"
+          >
+            {editingEvent ? "Modifier" : "Ajouter"}
+          </button>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event, index) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="bg-white rounded-lg shadow-lg overflow-hidden"
             >
-              Modifier
-            </button>
-            <button
-              onClick={() => handleDeleteEvent(event.id)}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            >
-              Supprimer
-            </button>
-          </div>
-        ))}
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-2 text-indigo-700">{event.title}</h2>
+                <p className="text-gray-600 mb-1">Date : {event.date}</p>
+                <p className="text-gray-600 mb-4">Lieu : {event.location}</p>
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => handleEditEvent(event)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEvent(event.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
