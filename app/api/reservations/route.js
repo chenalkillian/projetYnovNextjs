@@ -41,18 +41,15 @@ export async function POST(request) {
             });
         }
 
-        // Générer le numéro de confirmation
-        const confirmationNumber = Math.random().toString(36).substring(2, 15);
-
         // Créer la réservation
-        await addDoc(collection(db, 'reservations'), {
+        const reservationRef = await addDoc(collection(db, 'reservations'), {
             eventId,
             name,
             email,
             numberOfTickets,
             status: 'confirmed',
             createdAt: new Date().toISOString(),
-            confirmationNumber: confirmationNumber
+            confirmationNumber: Math.random().toString(36).substring(2, 15).toUpperCase()
         });
 
         // Mettre à jour le nombre de places disponibles
@@ -60,9 +57,13 @@ export async function POST(request) {
             availableTickets: availableTickets - numberOfTickets
         });
 
+        // Récupérer la réservation créée pour avoir le numéro de confirmation
+        const reservationDoc = await getDoc(reservationRef);
+        const reservationData = reservationDoc.data();
+
         return new Response(JSON.stringify({
             success: true,
-            confirmationNumber: confirmationNumber,
+            confirmationNumber: reservationData.confirmationNumber,
             message: "Réservation confirmée"
         }), {
             status: 200,
