@@ -10,6 +10,7 @@ export default function EventModal({ isOpen, onClose, onSubmit }) {
         time: "",
         location: "",
         description: "",
+        availableTickets: 100,
     });
 
     const handleSubmit = async (e) => {
@@ -24,7 +25,7 @@ export default function EventModal({ isOpen, onClose, onSubmit }) {
                 date: dateTime,
             });
             onClose();
-            setFormData({ title: "", date: "", time: "", location: "", description: "" });
+            setFormData({ title: "", date: "", time: "", location: "", description: "", availableTickets: 100 });
         } catch (error) {
             console.error("Erreur lors de la soumission:", error);
         }
@@ -108,6 +109,20 @@ export default function EventModal({ isOpen, onClose, onSubmit }) {
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                             rows="3"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Nombre de places disponibles
+                                        </label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="1"
+                                            value={formData.availableTickets}
+                                            onChange={(e) => setFormData({ ...formData, availableTickets: parseInt(e.target.value) })}
+                                            className="w-full p-2 border border-gray-300 rounded"
                                         />
                                     </div>
 

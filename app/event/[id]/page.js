@@ -103,6 +103,16 @@ export default function EventDetails() {
                                     <h2 className="text-xl font-semibold text-gray-700 mb-2">Lieu</h2>
                                     <p className="text-gray-600">{event.location}</p>
                                 </div>
+                                <div className="mb-6">
+                                    <h2 className="text-xl font-semibold text-gray-700 mb-2">Places disponibles</h2>
+                                    <p className="text-gray-600">
+                                        {event.availableTickets > 0 ? (
+                                            <span className="text-green-600 font-semibold">{event.availableTickets} places restantes</span>
+                                        ) : (
+                                            <span className="text-red-600 font-semibold">Complet</span>
+                                        )}
+                                    </p>
+                                </div>
                             </div>
                             <div>
                                 <h2 className="text-xl font-semibold text-gray-700 mb-2">Description</h2>
@@ -112,12 +122,21 @@ export default function EventDetails() {
                     </div>
 
                     <div className="mt-8 flex justify-center">
-                        <button
-                            onClick={() => toast.success("La réservation sera bientôt disponible !")}
-                            className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-md"
-                        >
-                            Réserver cet événement
-                        </button>
+                        {event.availableTickets > 0 ? (
+                            <Link 
+                                href={`/event/${params.id}/booking`}
+                                className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
+                            >
+                                Réserver cet événement
+                            </Link>
+                        ) : (
+                            <button 
+                                disabled 
+                                className="inline-block bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold cursor-not-allowed"
+                            >
+                                Événement complet
+                            </button>
+                        )}
                     </div>
                 </motion.div>
             </div>
