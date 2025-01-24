@@ -27,7 +27,7 @@ export async function GET() {
 
 export async function POST(req) {
     const body = await req.json();
-    const { title, date, location } = body;
+    const { title, date, location, description } = body;
 
     if (!title || !date || !location) {
         return new Response(
@@ -37,12 +37,27 @@ export async function POST(req) {
     }
 
     const eventsCollection = collection(db, 'events');
-    const newEvent = await addDoc(eventsCollection, { title, date, location });
-
-    return new Response(JSON.stringify({ id: newEvent.id, title, date, location }), {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
+    const newEvent = await addDoc(eventsCollection, {
+        title,
+        date,
+        location,
+        description,
+        createdAt: new Date().toISOString()
     });
+
+    return new Response(
+        JSON.stringify({
+            id: newEvent.id,
+            title,
+            date,
+            location,
+            description
+        }),
+        {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+        }
+    );
 }
 
 export async function PUT(req) {

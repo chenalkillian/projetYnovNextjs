@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Menu from "./Menu"; // Assurez-vous que le chemin est correct
+import Menu from "./Menu";
 import { motion } from 'framer-motion';
+import EventModal from './components/EventModal';
+import { toast } from 'react-hot-toast';
 
 export default function Events() {
   const [events, setEvents] = useState([]);
-  const [newEvent, setNewEvent] = useState({ title: "", date: "", location: "" });
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -18,47 +19,29 @@ export default function Events() {
         setEvents(data);
       } catch (error) {
         console.error("Erreur lors du chargement des événements :", error);
+        toast.error("Erreur lors du chargement des événements");
       }
     };
     fetchEvents();
   }, []);
 
-  const handleAddOrUpdateEvent = async () => {
-    if (!newEvent.title || !newEvent.date || !newEvent.location) {
-      alert("Tous les champs sont requis !");
-      return;
-    }
-
+  const handleCreateEvent = async (eventData) => {
     try {
-      const url = "/api/event";
-      const options = editingEvent
-        ? {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...newEvent, id: editingEvent.id }),
-        }
-        : {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newEvent),
-        };
+      const res = await fetch("/api/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData),
+      });
 
-      const res = await fetch(url, options);
-      if (!res.ok) throw new Error("Erreur lors de la sauvegarde de l'événement");
+      if (!res.ok) throw new Error("Erreur lors de la création de l'événement");
 
-      const event = await res.json();
-      if (editingEvent) {
-        setEvents((prevEvents) =>
-          prevEvents.map((e) => (e.id === editingEvent.id ? event : e))
-        );
-      } else {
-        setEvents((prevEvents) => [...prevEvents, event]);
-      }
-
-      setNewEvent({ title: "", date: "", location: "" });
-      setEditingEvent(null);
+      const newEvent = await res.json();
+      setEvents(prev => [...prev, newEvent]);
+      toast.success("Événement créé avec succès !");
+      setIsModalOpen(false);
     } catch (error) {
-      console.error("Erreur :", error);
+      console.error("Erreur:", error);
+      toast.error("Erreur lors de la création de l'événement");
     }
   };
 
@@ -68,63 +51,31 @@ export default function Events() {
       if (!res.ok) throw new Error("Erreur lors de la suppression de l'événement");
 
       setEvents((prevEvents) => prevEvents.filter((e) => e.id !== id));
+      toast.success("Événement supprimé avec succès !");
     } catch (error) {
       console.error("Erreur :", error);
+      toast.error("Erreur lors de la suppression de l'événement");
     }
-  };
-
-  const handleEditEvent = (event) => {
-    setNewEvent({ title: event.title, date: event.date, location: event.location });
-    setEditingEvent(event);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-200">
       <Menu />
       <div className="container mx-auto p-8 pt-24">
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-4xl font-bold mb-8 text-center text-indigo-800"
+          className="flex justify-between items-center mb-8"
         >
-          Gestion des Événements
-        </motion.h1>
-
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white rounded-lg shadow-lg p-6 mb-8"
-        >
-          <h2 className="text-2xl font-semibold mb-4 text-indigo-700">
-            {editingEvent ? "Modifier l'événement" : "Ajouter un événement"}
-          </h2>
-          <input
-            type="text"
-            placeholder="Titre"
-            value={newEvent.title}
-            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="date"
-            value={newEvent.date}
-            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="text"
-            placeholder="Lieu"
-            value={newEvent.location}
-            onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-            className="p-2 border border-gray-300 rounded mb-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <h1 className="text-4xl font-bold text-indigo-800">
+            Gestion des Événements
+          </h1>
           <button
-            onClick={handleAddOrUpdateEvent}
-            className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md"
           >
-            {editingEvent ? "Modifier" : "Ajouter"}
+            Créer un événement
           </button>
         </motion.div>
 
@@ -139,18 +90,16 @@ export default function Events() {
             >
               <div className="p-6">
                 <h2 className="text-xl font-semibold mb-2 text-indigo-700">{event.title}</h2>
-                <p className="text-gray-600 mb-1">Date : {event.date}</p>
+                <p className="text-gray-600 mb-1">Date : {new Date(event.date).toLocaleDateString()}</p>
+                <p className="text-gray-600 mb-2">Heure : {new Date(event.date).toLocaleTimeString()}</p>
                 <p className="text-gray-600 mb-4">Lieu : {event.location}</p>
-                <div className="flex justify-between">
-                  <button
-                    onClick={() => handleEditEvent(event)}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    Modifier
-                  </button>
+                {event.description && (
+                  <p className="text-gray-600 mb-4">{event.description}</p>
+                )}
+                <div className="flex justify-end">
                   <button
                     onClick={() => handleDeleteEvent(event.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105"
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
                   >
                     Supprimer
                   </button>
@@ -159,6 +108,12 @@ export default function Events() {
             </motion.div>
           ))}
         </div>
+
+        <EventModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleCreateEvent}
+        />
       </div>
     </div>
   );
