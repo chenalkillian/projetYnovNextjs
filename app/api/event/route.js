@@ -27,7 +27,7 @@ export async function GET() {
 
 export async function POST(req) {
     const body = await req.json();
-    const { title, date, location, description, availableTickets } = body;
+    const { title, date, location, description, availableTickets, prix } = body;
 
     if (!title || !date || !location) {
         return new Response(
@@ -43,7 +43,8 @@ export async function POST(req) {
         location,
         description,
         availableTickets: availableTickets || 100,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        prix
     });
 
     return new Response(
@@ -53,7 +54,8 @@ export async function POST(req) {
             date,
             location,
             description,
-            availableTickets: availableTickets || 100
+            availableTickets: availableTickets || 100,
+            prix
         }),
         {
             status: 201,

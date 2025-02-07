@@ -11,6 +11,7 @@ export default function EventModal({ isOpen, onClose, onSubmit }) {
         location: "",
         description: "",
         availableTickets: 100,
+        prix: 100,
     });
 
     const handleSubmit = async (e) => {
@@ -123,6 +124,20 @@ export default function EventModal({ isOpen, onClose, onSubmit }) {
                                             value={formData.availableTickets}
                                             onChange={(e) => setFormData({ ...formData, availableTickets: parseInt(e.target.value) })}
                                             className="w-full p-2 border border-gray-300 rounded"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Prix
+                                        </label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="0"
+                                            value={formData.prix}
+                                            onChange={(e) => setFormData({ ...formData, prix: parseFloat(e.target.value) })}
+                                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                         />
                                     </div>
 
