@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import EventModal from './components/EventModal';
 import { toast } from 'react-hot-toast';
 import Link from 'next/link';
-
 export default function Events() {
   const [events, setEvents] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

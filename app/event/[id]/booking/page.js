@@ -7,7 +7,9 @@ import Menu from '../../../Menu';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
 import CheckoutForm from '@/app/api/event/checkform/form';
-
+import QRCode from "../../../components/QRCode";
+import { toast } from "react-hot-toast";
+import Cookies from 'js-cookie';
 const stripePromise = loadStripe('pk_test_51QprfoEHZnTqZRJue6tGB8563zPp8wDsMIdBPiROrU1t5sK0ple1TYMxaoYY5uZAyCy8b2RRUJugtCChrOdC4BbR00r95YrTti'); // Remplacez par votre clé publique Stripe
 
 const BookingPage = () => {
@@ -27,7 +29,6 @@ const BookingPage = () => {
     const [amount, setAmount] = useState(0);
     const [currency, setcurrency] = useState('eur');
 
-
     const params = useParams();
     const router = useRouter();
 
@@ -38,6 +39,8 @@ const BookingPage = () => {
                 const data = await response.json();
                 setEvent(data);
                 setAmount(data.prix);
+                Cookies.set('data', data, { expires: 1 }); // expire dans 1 jour
+
                 console.log(data);
 
             } catch (error) {
@@ -90,8 +93,12 @@ const BookingPage = () => {
                 throw new Error(data.error || 'Erreur lors de la réservation');
             }
 
+            // Stocker l'email dans les cookies
+            Cookies.set('userEmail', formData.email, { expires: 1 }); // expire dans 1 jour
+
+
+
             setSuccess(`Votre réservation a été confirmée ! Numéro de confirmation : ${data.confirmationNumber}`);
-            // Ne pas rediriger, juste afficher le message de succès
 
         } catch (error) {
             setError(error.message);
@@ -126,6 +133,8 @@ const BookingPage = () => {
             createPaymentIntent(amount * 100, currency);
         }
     }, [amount, currency]);
+
+
 
     if (loading) {
         return (
@@ -249,46 +258,6 @@ const BookingPage = () => {
                                         type="submit"
                                         disabled={submitting}
                                         className={`px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={async (e) => {
-                                            e.preventDefault();
-                                            const validationError = validateForm();
-                                            if (validationError) {
-                                                setError(validationError);
-                                                return;
-                                            }
-
-                                            setSubmitting(true);
-                                            setError('');
-
-                                            try {
-                                                const response = await fetch('/api/reservations', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                    },
-                                                    body: JSON.stringify({
-                                                        eventId: params.id,
-                                                        name: `${formData.firstName} ${formData.lastName}`,
-                                                        email: formData.email,
-                                                        numberOfTickets: formData.numberOfTickets
-                                                    }),
-                                                });
-
-                                                const data = await response.json();
-
-                                                if (!response.ok) {
-                                                    throw new Error(data.error || 'Erreur lors de la réservation');
-                                                }
-
-                                                setSuccess(`Votre réservation a été confirmée ! Numéro de confirmation : ${data.confirmationNumber}`);
-                                                // Ne pas rediriger, juste afficher le message de succès
-
-                                            } catch (error) {
-                                                setError(error.message);
-                                            } finally {
-                                                setSubmitting(false);
-                                            }
-                                        }}
                                     >
                                         {submitting ? 'Traitement...' : 'Confirmer la réservation et le paiement'}
                                     </button>
@@ -302,6 +271,18 @@ const BookingPage = () => {
                                         <CheckoutForm />
                                     </Elements>
                                 )}
+                            </div>
+
+                            <div className="mt-8">
+                                <h2 className="text-xl font-semibold text-gray-800">QR Code</h2>
+                                <QRCode data={JSON.stringify({
+                                    name: `${formData.firstName} ${formData.lastName}`,
+                                    email: formData.email,
+                                    numberOfTickets: formData.numberOfTickets,
+                                    eventTitle: event.title,
+                                    eventDate: new Date(event.date).toLocaleString(),
+                                    eventLocation: event.location
+                                }, null, 2)} width={300} />
                             </div>
                         </div>
                     </div>

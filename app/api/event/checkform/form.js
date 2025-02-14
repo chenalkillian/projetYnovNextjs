@@ -6,17 +6,40 @@ import {
     useStripe,
     useElements
 } from "@stripe/react-stripe-js";
+import Cookies from 'js-cookie';
 
 export default function CheckoutForm() {
     const stripe = useStripe();
     const elements = useElements();
 
-
     const [message, setMessage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
+    const event = Cookies.get('data') || '';
+
+    const handleSendEmail = async (eventData) => {
+        try {
+            const res = await fetch(`/api/send-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event: eventData,
+
+                }),
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de l'envoi de l'email");
+            toast.success("Email envoyé avec succès !");
+        } catch (error) {
+            console.error("Erreur:", error);
+            toast.error("Erreur lors de l'envoi de l'email");
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        handleSendEmail(event);
 
         if (!stripe || !elements) {
             // Stripe.js hasn't yet loaded.
@@ -45,7 +68,33 @@ export default function CheckoutForm() {
             setMessage("An unexpected error occurred.");
         }
 
+        // Récupérer l'email depuis le localStorage
+        const email = localStorage.getItem('userEmail');
+
+        // Envoyer l'email après le paiement
+        if (email && !error) {
+            await sendEmailAfterPayment(email);
+        }
+
         setIsLoading(false);
+    };
+
+    const sendEmailAfterPayment = async (userEmail) => {
+        try {
+            const res = await fetch(`/api/send-email`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event: { /* Ajoutez ici les détails de l'événement si nécessaire */ },
+                    email: userEmail,
+                }),
+            });
+
+            if (!res.ok) throw new Error("Erreur lors de l'envoi de l'email");
+            console.log("Email envoyé avec succès !");
+        } catch (error) {
+            console.error("Erreur lors de l'envoi de l'email:", error);
+        }
     };
 
     const paymentElementOptions = {
